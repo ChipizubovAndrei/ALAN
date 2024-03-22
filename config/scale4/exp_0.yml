@@ -1,0 +1,44 @@
+scale: 4
+
+dataset:
+  train:
+    name: Div2k
+  valid:
+    name: Set14 # Div2k, Set14, Set5, Urban100
+
+net:
+  type: ALAN
+  number_of_stage_layers_in_FEM: 2
+  batch_norm: 0
+  feature_channels: 24
+  upsampling_ACB: 1
+  pretrained: 1
+  model_path: ./results/models/exp_0_scale_4/pytorch_model_4x.pt
+
+logging:
+  model_save_dir: ./results/models/exp_0_scale_4/
+
+preproc:
+  patch_size: 48
+
+train_batcher:
+  batch: 16 #batch size
+
+valid_batcher:
+  batch: 1 #batch size
+
+opt:
+  type: Adam
+  lr: 10.e-4 #initial learning rate
+  momentum: 0.2
+
+lr_scheduler:
+  type: StepLR #SGDR, LRFinder, OneCyclePolicy
+  gamma: 0.1
+  step_size: 100
+
+loss: 
+  type: SmoothL1
+
+train:
+  epoch_size: 2000 #epoch size
