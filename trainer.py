@@ -122,9 +122,9 @@ class Trainer:
                         loss = self.criterion(preds, labels)
                     else:
                         with torch.no_grad():
-                            preds__vgg_space = self.truncated_vgg19(preds)
-                            labels__vgg_space = self.truncated_vgg19(labels).detach()  # detached because they're constant, targets
-                        loss = self.criterion(preds__vgg_space, labels__vgg_space)
+                            preds = self.truncated_vgg19(preds)
+                            labels = self.truncated_vgg19(labels).detach()  # detached because they're constant, targets
+                        loss = self.criterion(preds, labels)
 
                     epoch_losses.update(loss.item(), len(inputs))
 

@@ -21,7 +21,7 @@ class LoggerCSV:
             with open(f'./logs/{self.model_name}.csv', mode, newline='') as file:
                 writer = csv.writer(file)
                 writer.writerow(log)
-            file.close()
+                print('Log saved')
         except FileNotFoundError:
             print("Wrong path to the log file.")
 
@@ -51,6 +51,7 @@ class TruncatedVGG19(nn.Module):
             i, j)
 
         self.truncated_vgg19 = nn.Sequential(*list(vgg19.features.children())[:truncate_at + 1])
+        for param in self.truncated_vgg19.parameters(): param.requires_grad = False
 
     def forward(self, input):
         output = self.truncated_vgg19(input)  # (N, feature_map_channels, feature_map_w, feature_map_h)

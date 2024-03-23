@@ -14,7 +14,7 @@ net:
   upsampling:
     n_ACB: 3
     type: subpixel #nearest
-  pretrained: 0
+  pretrained: 1
   model_path: ./results/models/exp_3_scale_4/pytorch_model_4x.pt
 
 logging:
