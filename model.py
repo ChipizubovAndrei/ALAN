@@ -1,4 +1,5 @@
 import sys
+import math
 
 sys.path.append("custom_layers")
 
@@ -35,7 +36,15 @@ class ALAN(nn.Module):
 
         self.acb_a4 = ACB( in_channels=n_channels, out_channels=n_channels, kernel_size=3, padding=1 )
         # Upsampling
-        self.nn_upsampling_b1 = nn.UpsamplingNearest2d(scale_factor=self.config.scale)
+
+        upsampling_type = self.config.upsampling_type
+        if upsampling_type == 'nearest':
+            self.nn_upsampling_b1 = nn.UpsamplingNearest2d(scale_factor=self.config.scale)
+        elif upsampling_type == 'subpixel':
+            n_subpixel = int(math.log2(self.config.scale))
+            self.nn_upsampling_b1 = nn.Sequential(
+                    *[SubPixelConv(kernel_size=3, n_channels=n_channels, scale_factor=2) for i in range(n_subpixel)])
+            
         # Можно добывить еще M слоев
         self.acb_b1 = nn.Sequential(
             *[ACB( in_channels=n_channels, out_channels=n_channels, kernel_size=3, padding=1 ) for i in range(self.config.n_up_acb)])
