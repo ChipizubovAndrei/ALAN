@@ -165,9 +165,8 @@ class Trainer:
                 if self.truncated_vgg19 == None:
                     loss = self.criterion(preds, labels)
                 else:
-                    with torch.no_grad():
-                        preds__vgg_space = self.truncated_vgg19(preds)
-                        labels__vgg_space = self.truncated_vgg19(labels).detach()  # detached because they're constant, targets
+                    preds__vgg_space = self.truncated_vgg19(preds)
+                    labels__vgg_space = self.truncated_vgg19(labels).detach()  # detached because they're constant, targets
                     loss = self.criterion(preds__vgg_space, labels__vgg_space)
             
             epoch_losses.update(loss.item(), len(inputs))
@@ -177,7 +176,7 @@ class Trainer:
             epoch_ssim.update(metrics['ssim'], len(inputs))
 
         print(f'scale:{str(scale)}      eval psnr: {epoch_psnr.avg:.2f}     ssim: {epoch_ssim.avg:.4f}')
-        self.logger([epoch_losses.avg, epoch_psnr.avg, epoch_ssim.avg])
+        self.logger([epoch, epoch_losses.avg, epoch_psnr.avg, epoch_ssim.avg])
 
         if epoch_psnr.avg > self.best_metric:
             self.best_epoch = epoch

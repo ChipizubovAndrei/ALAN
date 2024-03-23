@@ -4,6 +4,8 @@ try:
 except ImportError:
     from yaml import Loader
 
+import os
+
 from datasets import load_dataset
 from model import ALAN
 from super_image import TrainingArguments, EdsrConfig
@@ -20,6 +22,8 @@ import torch
 from config import AlanConfig
 
 from utils import TruncatedVGG19
+
+os.chdir(os.path.dirname(__file__))
 
 exp_num = 3
 scale = 4

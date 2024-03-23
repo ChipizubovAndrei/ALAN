@@ -8,7 +8,7 @@ class LoggerCSV:
         self.model_name = model_name
 
     def __call__(self, log):
-        #log = [epoch, train loss, psnr, ssim]
+        #log = [epoch, val loss, psnr, ssim]
         try:
             if log[0] == 0:
                 mode = 'w'

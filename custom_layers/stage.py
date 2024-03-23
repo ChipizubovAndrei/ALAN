@@ -1,5 +1,6 @@
 from torch import nn
-from alkcb import ALKCB
+
+from custom_layers.alkcb import ALKCB
 
 class Stage( nn.Module ):
     def __init__(self, in_channels, out_channels, use_batch_norm=False):

@@ -44,7 +44,7 @@ class ALAN(nn.Module):
         elif upsampling_type == 'subpixel':
             n_subpixel = int(math.log2(self.config.scale))
             self.nn_upsampling_b1 = nn.Sequential(
-                    *[SubPixelConv(kernel_size=3, n_channels=n_channels, scale_factor=2) for i in range(n_subpixel)])
+                    *[SubPixelConv(kernel_size=3, n_channels=n_channels, scale=2) for i in range(n_subpixel)])
             
         # Можно добывить еще M слоев
         self.acb_b1 = nn.Sequential(

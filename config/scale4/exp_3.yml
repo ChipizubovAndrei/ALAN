@@ -11,8 +11,9 @@ net:
   number_of_stage_layers_in_FEM: 4
   batch_norm: 0
   feature_channels: 60
-  upsampling_ACB: 3
-  upsampling_type: subpixel #nearest
+  upsampling:
+    n_ACB: 3
+    type: subpixel #nearest
   pretrained: 0
   model_path: ./results/models/exp_3_scale_4/pytorch_model_4x.pt
 
