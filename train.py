@@ -21,7 +21,7 @@ from config import AlanConfig
 
 from utils import TruncatedVGG19
 
-exp_num = 0
+exp_num = 3
 scale = 4
 args = f'./config/scale{scale}/exp_{exp_num}.yml'
 
@@ -56,7 +56,7 @@ with open(args) as yml_file:
         scale=scale, n_stage=number_of_stage, 
         n_up_acb=upsampling_ACB, upsampling_type=upsampling_type, 
         batch_norm=batch_norm)
-    model = ALAN(n_channels=feature_channels, config=config)
+    model = ALAN(n_channels=feature_channels, config=config, model_name=model_name)
 
     if torch.cuda.is_available():
         model = model.cuda()
@@ -67,7 +67,6 @@ with open(args) as yml_file:
 
     if opt_name == 'Adam':
         optimizer = Adam(model.parameters(), lr=lr)
-        
 
 # --- Scheduler --- #
     scheduler_name = cfg['lr_scheduler']['type']
@@ -84,7 +83,10 @@ with open(args) as yml_file:
     elif loss_name == 'ContentLoss':
         vgg19_i = cfg['loss']['vgg19_i']  # the index i in the definition for VGG loss; see paper or models.py
         vgg19_j = cfg['loss']['vgg19_j']  # the index j in the definition for VGG loss; see paper or models.py
-        runcated_vgg19 = TruncatedVGG19()
+        truncated_vgg19 = TruncatedVGG19(vgg19_i, vgg19_j)
+        truncated_vgg19.eval()
+        if torch.cuda.is_available():
+            truncated_vgg19 = truncated_vgg19.cuda()
 
 # --- Checkpoint --- #
     if pretrained:

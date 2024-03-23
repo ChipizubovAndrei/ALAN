@@ -7,7 +7,7 @@ dataset:
     name: Div2k # Div2k, Set14, Set5, Urban100
 
 net:
-  type: ALAN_base
+  type: ALAN_base_Subpixel_ContentLoss
   number_of_stage_layers_in_FEM: 4
   batch_norm: 0
   feature_channels: 60

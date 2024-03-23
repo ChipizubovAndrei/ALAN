@@ -33,7 +33,7 @@ from super_image.trainer_utils import (
 from super_image import TrainingArguments
 from super_image.utils.metrics import AverageMeter, compute_metrics
 
-logger = logging.getLogger(__name__)
+from utils import LoggerCSV
 
 class Trainer:
     def __init__(
@@ -45,11 +45,11 @@ class Trainer:
         optimizer = None,
         criterion = None,
         scheduler = None,
+        truncated_vgg19=None,
         epoch = 0
     ):
         if args is None:
             output_dir = "tmp_trainer"
-            logger.info(f"No `TrainingArguments` passed, using `output_dir={output_dir}`.")
             args = TrainingArguments(output_dir=output_dir)
         self.args = args
         # Seed must be set before instantiating the model when using model
@@ -67,7 +67,10 @@ class Trainer:
         self.optimizer = optimizer
         self.criterion = criterion
         self.scheduler = scheduler
+        self.truncated_vgg19 = truncated_vgg19
         self.epoch = epoch
+
+        self.logger = LoggerCSV(model.model_name)
 
     def train(
             self, resume_from_checkpoint: Optional[Union[str, bool]] = None,
@@ -115,7 +118,13 @@ class Trainer:
                     labels = labels.to(device)
 
                     preds = self.model(inputs)
-                    loss = self.criterion(preds, labels)
+                    if self.truncated_vgg19 == None:
+                        loss = self.criterion(preds, labels)
+                    else:
+                        with torch.no_grad():
+                            preds__vgg_space = self.truncated_vgg19(preds)
+                            labels__vgg_space = self.truncated_vgg19(labels).detach()  # detached because they're constant, targets
+                        loss = self.criterion(preds__vgg_space, labels__vgg_space)
 
                     epoch_losses.update(loss.item(), len(inputs))
 
@@ -143,6 +152,8 @@ class Trainer:
 
         self.model.eval()
 
+        epoch_losses = AverageMeter()
+
         for data in eval_dataloader:
             inputs, labels = data
             inputs = inputs.to(device)
@@ -151,12 +162,22 @@ class Trainer:
             with torch.no_grad():
                 preds = self.model(inputs)
 
+                if self.truncated_vgg19 == None:
+                    loss = self.criterion(preds, labels)
+                else:
+                    with torch.no_grad():
+                        preds__vgg_space = self.truncated_vgg19(preds)
+                        labels__vgg_space = self.truncated_vgg19(labels).detach()  # detached because they're constant, targets
+                    loss = self.criterion(preds__vgg_space, labels__vgg_space)
+            
+            epoch_losses.update(loss.item(), len(inputs))
             metrics = compute_metrics(EvalPrediction(predictions=preds, labels=labels), scale=scale)
 
             epoch_psnr.update(metrics['psnr'], len(inputs))
             epoch_ssim.update(metrics['ssim'], len(inputs))
 
         print(f'scale:{str(scale)}      eval psnr: {epoch_psnr.avg:.2f}     ssim: {epoch_ssim.avg:.4f}')
+        self.logger([epoch_losses.avg, epoch_psnr.avg, epoch_ssim.avg])
 
         if epoch_psnr.avg > self.best_metric:
             self.best_epoch = epoch

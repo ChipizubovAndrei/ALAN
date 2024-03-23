@@ -1,5 +1,29 @@
+import csv
+
 from torch import nn
 import torchvision
+
+class LoggerCSV:
+    def __init__(self, model_name):
+        self.model_name = model_name
+
+    def __call__(self, log):
+        #log = [epoch, train loss, psnr, ssim]
+        try:
+            if log[0] == 0:
+                mode = 'w'
+                with open(f'./logs/{self.model_name}.csv', mode, newline='') as file:
+                    writer = csv.writer(file)
+                    writer.writerow(["Epoch", "Train loss", "Val PSNR", "Val SSIM"])
+            else:
+                mode = 'a'
+            
+            with open(f'./logs/{self.model_name}.csv', mode, newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow(log)
+            file.close()
+        except FileNotFoundError:
+            print("Wrong path to the log file.")
 
 class TruncatedVGG19(nn.Module):
 

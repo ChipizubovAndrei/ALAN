@@ -11,7 +11,8 @@ from custom_layers.stage import Stage
 from custom_layers.subpixelconv import SubPixelConv
 
 class ALAN(nn.Module):
-    def __init__( self, n_channels, config ):
+    def __init__( self, n_channels, config, model_name='pytorch_model' ):
+        self.model_name = model_name
         ACB = ACBlock
         super(ALAN, self).__init__()
         # Feature extraction module

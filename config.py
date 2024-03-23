@@ -6,7 +6,7 @@ from super_image.data.datasets import (
 )
 
 class AlanConfig(PretrainedConfig):
-    model_type = 'EDSR'
+    model_type = 'ALAN'
 
     def __init__(self, scale: int = None, n_resblocks=16, n_feats=64, n_colors=3, rgb_range=255,
                  rgb_mean=DIV2K_RGB_MEAN, rgb_std=DIV2K_RGB_STD, no_upsampling=False,
