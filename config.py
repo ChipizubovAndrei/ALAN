@@ -11,7 +11,7 @@ class AlanConfig(PretrainedConfig):
     def __init__(self, scale: int = None, n_resblocks=16, n_feats=64, n_colors=3, rgb_range=255,
                  rgb_mean=DIV2K_RGB_MEAN, rgb_std=DIV2K_RGB_STD, no_upsampling=False,
                  res_scale=1, data_parallel=False, batch_norm=False, n_stage=2,
-                 n_up_acb=1, **kwargs):
+                 n_up_acb=1, upsampling_type='nearest', **kwargs):
         """
         Args:
             scale (int): Scale for the model to train an upscaler/super-res model.
@@ -49,3 +49,4 @@ class AlanConfig(PretrainedConfig):
         self.use_batch_norm = batch_norm
         self.n_stage = n_stage
         self.n_up_acb = n_up_acb
+        self.upsampling_type = upsampling_type
