@@ -19,6 +19,8 @@ import torch
 
 from config import AlanConfig
 
+from utils import TruncatedVGG19
+
 exp_num = 0
 scale = 4
 args = f'./config/scale{scale}/exp_{exp_num}.yml'
@@ -42,14 +44,18 @@ with open(args) as yml_file:
     number_of_stage = cfg['net']['number_of_stage_layers_in_FEM']
     batch_norm = cfg['net']['batch_norm']
     feature_channels = cfg['net']['feature_channels']
-    upsampling_ACB = cfg['net']['upsampling_ACB']
+    upsampling_type = cfg['net']['upsampling']['type']
+    upsampling_ACB = cfg['net']['upsampling']['n_ACB']
     pretrained = cfg['net']['pretrained']
     if pretrained:
         model_path = cfg['net']['model_path']
     else:
         model_path = ''
 
-    config = AlanConfig(scale=scale, n_stage=number_of_stage, n_up_acb=upsampling_ACB)
+    config = AlanConfig(
+        scale=scale, n_stage=number_of_stage, 
+        n_up_acb=upsampling_ACB, upsampling_type=upsampling_type, 
+        batch_norm=batch_norm)
     model = ALAN(n_channels=feature_channels, config=config)
 
     if torch.cuda.is_available():
@@ -74,7 +80,11 @@ with open(args) as yml_file:
 # --- Loss --- #
     loss_name = cfg['loss']['type']
     if loss_name == 'SmoothL1':
-        loss = nn.SmoothL1Loss() 
+        loss = nn.SmoothL1Loss()
+    elif loss_name == 'ContentLoss':
+        vgg19_i = cfg['loss']['vgg19_i']  # the index i in the definition for VGG loss; see paper or models.py
+        vgg19_j = cfg['loss']['vgg19_j']  # the index j in the definition for VGG loss; see paper or models.py
+        runcated_vgg19 = TruncatedVGG19()
 
 # --- Checkpoint --- #
     if pretrained:
