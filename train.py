@@ -90,9 +90,6 @@ with open(args) as yml_file:
         vgg19_j = cfg['loss']['vgg19_j']  # the index j in the definition for VGG loss; see paper or models.py
         truncated_vgg19 = TruncatedVGG19(vgg19_i, vgg19_j)
         truncated_vgg19.eval()
-
-        num_params = sum(p.numel() for p in truncated_vgg19.parameters() if p.requires_grad)
-        print(f'The model has {num_params:,} trainable parameters')
             
     if torch.cuda.is_available():
         truncated_vgg19 = truncated_vgg19.cuda()

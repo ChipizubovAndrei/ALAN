@@ -1,4 +1,5 @@
 import csv
+import os.path
 
 from torch import nn
 import torchvision
@@ -10,18 +11,17 @@ class LoggerCSV:
     def __call__(self, log):
         #log = [epoch, val loss, psnr, ssim]
         try:
-            if log[0] == 0:
-                mode = 'w'
-                with open(f'./logs/{self.model_name}.csv', mode, newline='') as file:
-                    writer = csv.writer(file)
-                    writer.writerow(["Epoch", "Train loss", "Val PSNR", "Val SSIM"])
+            if not os.path.exists(f'./logs/{self.model_name}.csv'):
+                mode = 'w+'
+                file = open(f'./logs/{self.model_name}.csv', mode, newline='')
+                writer = csv.writer(file)
+                writer.writerow(["Epoch", "Train loss", "Val PSNR", "Val SSIM"])
             else:
                 mode = 'a'
             
             with open(f'./logs/{self.model_name}.csv', mode, newline='') as file:
                 writer = csv.writer(file)
                 writer.writerow(log)
-                print('Log saved')
         except FileNotFoundError:
             print("Wrong path to the log file.")
 
@@ -30,7 +30,7 @@ class TruncatedVGG19(nn.Module):
     def __init__(self, i, j):
         super(TruncatedVGG19, self).__init__()
 
-        vgg19 = torchvision.models.vgg19(pretrained=True)
+        vgg19 = torchvision.models.vgg19(weights=torchvision.models.VGG19_Weights.IMAGENET1K_V1)
 
         maxpool_counter = 0
         conv_counter = 0
