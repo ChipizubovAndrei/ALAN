@@ -162,3 +162,5 @@ cython_debug/
 # Machine Learning
 dataset/
 test/
+results/
+logs/
