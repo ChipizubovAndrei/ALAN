@@ -14,11 +14,11 @@ net:
   upsampling:
     n_ACB: 3
     type: subpixel #nearest
-  pretrained: 1
-  model_path: ./results/models/exp_4_scale_4/pytorch_model_4x.pt
+  pretrained: 0
+  model_path: ./results/models/exp_5_scale_4/pytorch_model_4x.pt
 
 logging:
-  model_save_dir: ./results/models/exp_4_scale_4/
+  model_save_dir: ./results/models/exp_5_scale_4/
 
 preproc:
   patch_size: 48
@@ -40,9 +40,9 @@ lr_scheduler:
   step_size: 100
 
 loss: 
-  type: MSE #SmoothL1
+  type: ContentLoss #SmoothL1
   vgg19_i: 5
   vgg19_j: 4
 
 train:
-  epoch_size: 2000 #epoch size
+  epoch_size: 1500 #epoch size

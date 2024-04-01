@@ -25,7 +25,7 @@ from utils import TruncatedVGG19
 
 os.chdir(os.path.dirname(__file__))
 
-exp_num = 4
+exp_num = 5
 scale = 4
 args = f'./config/scale{scale}/exp_{exp_num}.yml'
 
@@ -81,9 +81,12 @@ with open(args) as yml_file:
         scheduler = StepLR(optimizer, step_size=step_size, gamma=gamma)
 
 # --- Loss --- #
+    truncated_vgg19 = None
     loss_name = cfg['loss']['type']
     if loss_name == 'SmoothL1':
         loss = nn.SmoothL1Loss()
+    elif loss_name == 'MSE':
+        loss = nn.MSELoss()
     elif loss_name == 'ContentLoss':
         loss = nn.MSELoss()
         vgg19_i = cfg['loss']['vgg19_i']  # the index i in the definition for VGG loss; see paper or models.py
@@ -91,9 +94,9 @@ with open(args) as yml_file:
         truncated_vgg19 = TruncatedVGG19(vgg19_i, vgg19_j)
         truncated_vgg19.eval()
             
-    if torch.cuda.is_available():
-        truncated_vgg19 = truncated_vgg19.cuda()
-        loss = loss.cuda() 
+        if torch.cuda.is_available():
+            truncated_vgg19 = truncated_vgg19.cuda()
+            loss = loss.cuda() 
 
 # --- Checkpoint --- #
     if pretrained:
@@ -128,6 +131,7 @@ trainer = Trainer(
     eval_dataset=eval_dataset,           # evaluation dataset
     optimizer=optimizer,
     criterion=loss,
+    truncated_vgg19=truncated_vgg19,
     scheduler=scheduler,
     epoch=epoch
 )

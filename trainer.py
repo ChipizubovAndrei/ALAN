@@ -45,7 +45,7 @@ class Trainer:
         optimizer = None,
         criterion = None,
         scheduler = None,
-        truncated_vgg19=None,
+        truncated_vgg19 = None,
         epoch = 0
     ):
         if args is None:
@@ -121,9 +121,8 @@ class Trainer:
                     if self.truncated_vgg19 == None:
                         loss = self.criterion(preds, labels)
                     else:
-                        with torch.no_grad():
-                            preds = self.truncated_vgg19(preds)
-                            labels = self.truncated_vgg19(labels).detach()  # detached because they're constant, targets
+                        preds = self.truncated_vgg19(preds)
+                        labels = self.truncated_vgg19(labels).detach()  # detached because they're constant, targets
                         loss = self.criterion(preds, labels)
 
                     epoch_losses.update(loss.item(), len(inputs))
@@ -165,11 +164,12 @@ class Trainer:
                 if self.truncated_vgg19 == None:
                     loss = self.criterion(preds, labels)
                 else:
-                    preds__vgg_space = self.truncated_vgg19(preds)
-                    labels__vgg_space = self.truncated_vgg19(labels).detach()  # detached because they're constant, targets
-                    loss = self.criterion(preds__vgg_space, labels__vgg_space)
+                    preds_vgg_space = self.truncated_vgg19(preds)
+                    labels_vgg_space = self.truncated_vgg19(labels).detach()  # detached because they're constant, targets
+                    loss = self.criterion(preds_vgg_space, labels_vgg_space)
             
             epoch_losses.update(loss.item(), len(inputs))
+
             metrics = compute_metrics(EvalPrediction(predictions=preds, labels=labels), scale=scale)
 
             epoch_psnr.update(metrics['psnr'], len(inputs))
