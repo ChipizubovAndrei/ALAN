@@ -360,7 +360,6 @@ class SubPixelConv(nn.Module):
 class ALAN(nn.Module):
     def __init__( self, n_channels, config, model_name='pytorch_model' ):
         self.model_name = model_name
-        ACB = ACBlock
         super(ALAN, self).__init__()
         # Feature extraction module
         self.config = config

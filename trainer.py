@@ -33,7 +33,7 @@ from super_image.trainer_utils import (
 from super_image import TrainingArguments
 from super_image.utils.metrics import AverageMeter, compute_metrics
 
-from utils import LoggerCSV
+from utils import LoggerCSV, convert_image
 
 class Trainer:
     def __init__(
@@ -117,11 +117,15 @@ class Trainer:
                     inputs = inputs.to(device)
                     labels = labels.to(device)
 
+                    inputs = convert_image(inputs, source='[0, 1]', target='imagenet-norm')
+                    labels = convert_image(labels, source='[0, 1]', target='imagenet-norm')
+
                     preds = self.model(inputs)
                     if self.truncated_vgg19 == None:
                         loss = self.criterion(preds, labels)
                     else:
                         preds = self.truncated_vgg19(preds)
+                        preds = convert_image(nn.Tanh(preds), source='[-1, 1]', target='imagenet-norm')
                         labels = self.truncated_vgg19(labels).detach()  # detached because they're constant, targets
                         loss = self.criterion(preds, labels)
 
