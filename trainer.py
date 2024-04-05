@@ -117,15 +117,15 @@ class Trainer:
                     inputs = inputs.to(device)
                     labels = labels.to(device)
 
-                    inputs = convert_image(inputs, source='[0, 1]', target='imagenet-norm')
-                    labels = convert_image(labels, source='[0, 1]', target='imagenet-norm')
+                    # inputs = convert_image(inputs, source='[0, 1]', target='imagenet-norm')
+                    # labels = convert_image(labels, source='[0, 1]', target='imagenet-norm')
 
                     preds = self.model(inputs)
                     if self.truncated_vgg19 == None:
                         loss = self.criterion(preds, labels)
                     else:
+                        # preds = convert_image(preds, source='[0, 1]', target='imagenet-norm')
                         preds = self.truncated_vgg19(preds)
-                        preds = convert_image(nn.Tanh(preds), source='[-1, 1]', target='imagenet-norm')
                         labels = self.truncated_vgg19(labels).detach()  # detached because they're constant, targets
                         loss = self.criterion(preds, labels)
 
@@ -157,27 +157,36 @@ class Trainer:
 
         epoch_losses = AverageMeter()
 
-        for data in eval_dataloader:
-            inputs, labels = data
-            inputs = inputs.to(device)
-            labels = labels.to(device)
+        with tqdm(total=(len(self.eval_dataset) - len(self.eval_dataset) % 1)) as t:
+            t.set_description(f'epoch: {epoch}/{self.args.num_train_epochs - 1}')
+            for data in eval_dataloader:
+                inputs, labels = data
+                inputs = inputs.to(device)
+                labels = labels.to(device)
 
-            with torch.no_grad():
-                preds = self.model(inputs)
+                # inputs = convert_image(inputs, source='[0, 1]', target='imagenet-norm')
+                # labels = convert_image(labels, source='[0, 1]', target='imagenet-norm')
 
-                if self.truncated_vgg19 == None:
-                    loss = self.criterion(preds, labels)
-                else:
-                    preds_vgg_space = self.truncated_vgg19(preds)
-                    labels_vgg_space = self.truncated_vgg19(labels).detach()  # detached because they're constant, targets
-                    loss = self.criterion(preds_vgg_space, labels_vgg_space)
-            
-            epoch_losses.update(loss.item(), len(inputs))
+                with torch.no_grad():
+                    preds = self.model(inputs)
 
-            metrics = compute_metrics(EvalPrediction(predictions=preds, labels=labels), scale=scale)
+                    if self.truncated_vgg19 == None:
+                        loss = self.criterion(preds, labels)
+                    else:
+                        # preds = convert_image(preds, source='[0, 1]', target='imagenet-norm')
+                        preds_vgg_space = self.truncated_vgg19(preds)
+                        labels_vgg_space = self.truncated_vgg19(labels).detach()  # detached because they're constant, targets
+                        loss = self.criterion(preds_vgg_space, labels_vgg_space)
+                
+                epoch_losses.update(loss.item(), len(inputs))
 
-            epoch_psnr.update(metrics['psnr'], len(inputs))
-            epoch_ssim.update(metrics['ssim'], len(inputs))
+                metrics = compute_metrics(EvalPrediction(predictions=preds, labels=labels), scale=scale)
+
+                epoch_psnr.update(metrics['psnr'], len(inputs))
+                epoch_ssim.update(metrics['ssim'], len(inputs))
+                t.set_postfix(psnr=f'{epoch_psnr.avg:.6f}')
+                t.update(len(labels))
+            del inputs, labels, preds
 
         print(f'scale:{str(scale)}      eval psnr: {epoch_psnr.avg:.2f}     ssim: {epoch_ssim.avg:.4f}')
         self.logger([epoch, epoch_losses.avg, epoch_psnr.avg, epoch_ssim.avg])

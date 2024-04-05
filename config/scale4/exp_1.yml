@@ -11,12 +11,14 @@ net:
   number_of_stage_layers_in_FEM: 3
   batch_norm: 0
   feature_channels: 42
-  upsampling_ACB: 2
+  upsampling:
+    n_ACB: 3
+    type: nearest #subpixel
   pretrained: 0
-  model_path: ./results/models/exp_1_scale_4/pytorch_model_4x.pt
+  model_path: ./ALAN/results/models/exp_1_scale_4/pytorch_model_4x.pt
 
 logging:
-  model_save_dir: ./results/models/exp_1_scale_4/
+  model_save_dir: ./ALAN/results/models/exp_1_scale_4/
 
 preproc:
   patch_size: 48
