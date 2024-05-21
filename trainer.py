@@ -70,7 +70,7 @@ class Trainer:
         self.truncated_vgg19 = truncated_vgg19
         self.epoch = epoch
 
-        self.logger = LoggerCSV(model.model_name)
+        # self.logger = LoggerCSV(model.model_name)
 
     def train(
             self, resume_from_checkpoint: Optional[Union[str, bool]] = None,
@@ -117,11 +117,12 @@ class Trainer:
                     inputs = inputs.to(device)
                     labels = labels.to(device)
 
-                    # inputs = convert_image(inputs, source='[0, 1]', target='imagenet-norm')
-                    # labels = convert_image(labels, source='[0, 1]', target='imagenet-norm')
+                    inputs = convert_image(inputs, source='[0, 1]', target='imagenet-norm')
+                    labels = convert_image(labels, source='[0, 1]', target='imagenet-norm')
 
                     preds = self.model(inputs)
                     if self.truncated_vgg19 == None:
+                        preds = convert_image(preds, source='[-1, 1]', target='imagenet-norm')
                         loss = self.criterion(preds, labels)
                     else:
                         # preds = convert_image(preds, source='[0, 1]', target='imagenet-norm')
@@ -164,13 +165,14 @@ class Trainer:
                 inputs = inputs.to(device)
                 labels = labels.to(device)
 
-                # inputs = convert_image(inputs, source='[0, 1]', target='imagenet-norm')
-                # labels = convert_image(labels, source='[0, 1]', target='imagenet-norm')
+                inputs = convert_image(inputs, source='[0, 1]', target='imagenet-norm')
+                labels = convert_image(labels, source='[0, 1]', target='imagenet-norm')
 
                 with torch.no_grad():
                     preds = self.model(inputs)
 
                     if self.truncated_vgg19 == None:
+                        preds = convert_image(preds, source='[-1, 1]', target='imagenet-norm')
                         loss = self.criterion(preds, labels)
                     else:
                         # preds = convert_image(preds, source='[0, 1]', target='imagenet-norm')

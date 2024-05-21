@@ -7,18 +7,18 @@ dataset:
     name: Div2k # Div2k, Set14, Set5, Urban100
 
 net:
-  type: ALAN
+  type: ALAN_base_Subpixel_ContentLoss
   number_of_stage_layers_in_FEM: 3
   batch_norm: 0
   feature_channels: 42
   upsampling:
     n_ACB: 3
-    type: nearest #subpixel
-  pretrained: 1
-  model_path: ./results/models/exp_1_scale_4/pytorch_model_4x.pt
+    type: subpixel #nearest
+  pretrained: 0
+  model_path: ./results/models/exp_6_scale_4/pytorch_model_4x.pt
 
 logging:
-  model_save_dir: ./results/models/exp_1_scale_4/
+  model_save_dir: ./results/models/exp_6_scale_4/
 
 preproc:
   patch_size: 48
@@ -31,7 +31,7 @@ valid_batcher:
 
 opt:
   type: Adam
-  lr: 5.e-4 #initial learning rate
+  lr: 1.e-4 #initial learning rate
   momentum: 0.2
 
 lr_scheduler:
@@ -40,7 +40,9 @@ lr_scheduler:
   step_size: 100
 
 loss: 
-  type: SmoothL1
+  type: ContentLoss #SmoothL1
+  vgg19_i: 5
+  vgg19_j: 4
 
 train:
-  epoch_size: 2000 #epoch size
+  epoch_size: 20 #epoch size

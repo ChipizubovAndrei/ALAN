@@ -25,9 +25,11 @@ from utils import TruncatedVGG19
 
 os.chdir(os.path.dirname(__file__))
 
-exp_num = 5
+exp_num = 1
 scale = 4
 args = f'./config/scale{scale}/exp_{exp_num}.yml'
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 with open(args) as yml_file:
     cfg = yaml.load(yml_file, Loader)
@@ -44,71 +46,35 @@ with open(args) as yml_file:
     patch_size = cfg['preproc']['patch_size']   #Размер изображений в батче
 
 # --- Model --- #
-    model_name = cfg['net']['type']
-    number_of_stage = cfg['net']['number_of_stage_layers_in_FEM']
-    batch_norm = cfg['net']['batch_norm']
-    feature_channels = cfg['net']['feature_channels']
-    upsampling_type = cfg['net']['upsampling']['type']
-    upsampling_ACB = cfg['net']['upsampling']['n_ACB']
-    pretrained = cfg['net']['pretrained']
-    if pretrained:
-        model_path = cfg['net']['model_path']
-    else:
-        model_path = ''
+    srgan_checkpoint = "./results/models/alansr/checkpoint_srgan.pth.tar"
+    srresnet_checkpoint = "./results/models/alansr/checkpoint_srresnet.pth.tar"
 
-    config = AlanConfig(
-        scale=scale, n_stage=number_of_stage, 
-        n_up_acb=upsampling_ACB, upsampling_type=upsampling_type, 
-        batch_norm=batch_norm)
-    model = ALAN(n_channels=feature_channels, config=config, model_name=model_name)
+    # Load model, either the SRResNet or the SRGAN
+    # srresnet = torch.load(srresnet_checkpoint)['model'].to(device)
+    # srresnet.eval()
+    # model = srresnet
+    srgan_generator = torch.load(srgan_checkpoint)['generator']
+    for param in srgan_generator.parameters():
+        param.requires_grad = False
 
-    if torch.cuda.is_available():
-        model = model.cuda()
+    for param in srgan_generator.net.conv_block3.parameters():
+        param.requires_grad = True
+        
+    for param in srgan_generator.net.subpixel_convolutional_blocks.parameters():
+        param.requires_grad = True
+
+    model = srgan_generator
 
 # --- Optimizer --- #
-    opt_name = cfg['opt']['type']
-    lr = cfg['opt']['lr']
+    optimizer = Adam(model.parameters(), lr=1.e-4)
 
-    if opt_name == 'Adam':
-        optimizer = Adam(model.parameters(), lr=lr)
+# # --- Scheduler --- #
+    scheduler = StepLR(optimizer, step_size=100, gamma=0.1)
 
-# --- Scheduler --- #
-    scheduler_name = cfg['lr_scheduler']['type']
-    step_size = cfg['lr_scheduler']['step_size']
-    gamma = cfg['lr_scheduler']['gamma']
+# # --- Loss --- #
+    loss = nn.MSELoss()
 
-    if scheduler_name == 'StepLR':
-        scheduler = StepLR(optimizer, step_size=step_size, gamma=gamma)
-
-# --- Loss --- #
-    truncated_vgg19 = None
-    loss_name = cfg['loss']['type']
-    if loss_name == 'SmoothL1':
-        loss = nn.SmoothL1Loss()
-    elif loss_name == 'MSE':
-        loss = nn.MSELoss()
-    elif loss_name == 'ContentLoss':
-        loss = nn.MSELoss()
-        vgg19_i = cfg['loss']['vgg19_i']  # the index i in the definition for VGG loss; see paper or models.py
-        vgg19_j = cfg['loss']['vgg19_j']  # the index j in the definition for VGG loss; see paper or models.py
-        truncated_vgg19 = TruncatedVGG19(vgg19_i, vgg19_j)
-        truncated_vgg19.eval()
-            
-        if torch.cuda.is_available():
-            truncated_vgg19 = truncated_vgg19.cuda()
-            loss = loss.cuda() 
-
-# --- Checkpoint --- #
-    if pretrained:
-        checkpoint = torch.load(model_path)
-        model.load_state_dict(checkpoint['model_state_dict'])
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
-        epoch = checkpoint['epoch'] + 1
-        loss = checkpoint['loss']
-        del checkpoint
-
-#-------------------------------------------------------------------------------#
+# #-------------------------------------------------------------------------------#
 # download and augment the data with the five_crop method
 augmented_dataset = load_dataset(f'eugenesiow/{dataset_train}', f'bicubic_x{scale}', split='train')\
                     .map(augment_five_crop, batched=True, batch_size=batch_size, desc="Augmenting Dataset")
@@ -121,7 +87,7 @@ training_args = TrainingArguments(
     output_dir=output_dir,   # output directory
     num_train_epochs=num_train_epochs,                  # total number of training epochs
     per_device_train_batch_size=batch_size,
-    save_steps=100
+    save_steps=1
 )
 
 trainer = Trainer(
@@ -131,7 +97,7 @@ trainer = Trainer(
     eval_dataset=eval_dataset,           # evaluation dataset
     optimizer=optimizer,
     criterion=loss,
-    truncated_vgg19=truncated_vgg19,
+    truncated_vgg19=None,
     scheduler=scheduler,
     epoch=epoch
 )
