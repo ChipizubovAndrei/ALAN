@@ -166,7 +166,7 @@ class Trainer:
                 labels = labels.to(device)
 
                 inputs = convert_image(inputs, source='[0, 1]', target='imagenet-norm')
-                labels = convert_image(labels, source='[0, 1]', target='[0, 1]]')
+                labels = convert_image(labels, source='[0, 1]', target='[0, 1]')
 
                 with torch.no_grad():
                     preds = self.model(inputs)
@@ -192,12 +192,11 @@ class Trainer:
 
         print(f'scale:{str(scale)}      eval psnr: {epoch_psnr.avg:.2f}     ssim: {epoch_ssim.avg:.4f}')
 
-        if epoch_psnr.avg > self.best_metric:
-            self.best_epoch = epoch
-            self.best_metric = epoch_psnr.avg
+        self.best_epoch = epoch
+        self.best_metric = epoch_psnr.avg
 
-            print(f'best epoch: {epoch}, psnr: {epoch_psnr.avg:.6f}, ssim: {epoch_ssim.avg:.6f}')
-            self.save_model(epoch)
+        print(f'best epoch: {epoch}, psnr: {epoch_psnr.avg:.6f}, ssim: {epoch_ssim.avg:.6f}')
+        self.save_model(epoch)
 
     def _load_state_dict_in_model(self, state_dict):
         load_result = self.model.load_state_dict(state_dict, strict=False)

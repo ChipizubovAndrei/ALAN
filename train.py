@@ -54,6 +54,12 @@ with open(args) as yml_file:
     # srresnet.eval()
     # model = srresnet
     srgan_generator = torch.load(srgan_checkpoint)['generator']
+    model = srgan_generator
+    if True:
+        model_path = cfg['net']['model_path']
+        checkpoint = torch.load(model_path)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        
     for param in srgan_generator.parameters():
         param.requires_grad = False
 
@@ -63,7 +69,6 @@ with open(args) as yml_file:
     for param in srgan_generator.net.subpixel_convolutional_blocks.parameters():
         param.requires_grad = True
 
-    model = srgan_generator
     model = model.to(device)
 
 # --- Optimizer --- #
