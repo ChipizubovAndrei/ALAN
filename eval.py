@@ -21,10 +21,11 @@ scale = 4
 model_name = 'ALANSR'
 
 datasets = {
-    'Set5': [0, 1, 2, 3, 4],
+    # 'Set5': [0, 1, 2, 3, 4],
     # 'Set14': [0, 3, 8, 9, 12],
     # 'BSD100': [15, 29, 46, 48, 92],
-    # 'Urban100': [4, 78, 16, 42, 53, 84, 98]
+    # 'Urban100': [i for i in range(100)],
+    'Div2k': [15, 29, 46, 48, 92],
     }
 
 directory = f'./results/scale_{scale}/{model_name}'
@@ -77,6 +78,5 @@ for dataset_name in datasets.keys():
             preds = model(inputs_norm)
         
         preds = convert_image(preds, source='[-1, 1]', target='[0, 1]')
-        preds = preds.cpu()
         ImageLoader.save_image(preds, f'{directory}/{dataset_name}_{idx}.png')
         ImageLoader.save_compare(inputs, preds, f'{directory}/compare_{dataset_name}_{idx}.png')
