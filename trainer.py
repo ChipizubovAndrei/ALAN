@@ -118,11 +118,11 @@ class Trainer:
                     labels = labels.to(device)
 
                     inputs = convert_image(inputs, source='[0, 1]', target='imagenet-norm')
-                    labels = convert_image(labels, source='[0, 1]', target='imagenet-norm')
+                    labels = convert_image(labels, source='[0, 1]', target='[0, 1]')
 
                     preds = self.model(inputs)
                     if self.truncated_vgg19 == None:
-                        preds = convert_image(preds, source='[-1, 1]', target='imagenet-norm')
+                        preds = convert_image(preds, source='[-1, 1]', target='[0, 1]')
                         loss = self.criterion(preds, labels)
                     else:
                         # preds = convert_image(preds, source='[0, 1]', target='imagenet-norm')
@@ -148,7 +148,7 @@ class Trainer:
         if isinstance(self.model, nn.DataParallel):
             scale = self.model.module.config.scale
         else:
-            scale = self.model.config.scale
+            scale = 4
         device = args.device
         eval_dataloader = self.get_eval_dataloader()
         epoch_psnr = AverageMeter()
@@ -166,13 +166,13 @@ class Trainer:
                 labels = labels.to(device)
 
                 inputs = convert_image(inputs, source='[0, 1]', target='imagenet-norm')
-                labels = convert_image(labels, source='[0, 1]', target='imagenet-norm')
+                labels = convert_image(labels, source='[0, 1]', target='[0, 1]]')
 
                 with torch.no_grad():
                     preds = self.model(inputs)
 
                     if self.truncated_vgg19 == None:
-                        preds = convert_image(preds, source='[-1, 1]', target='imagenet-norm')
+                        preds = convert_image(preds, source='[-1, 1]', target='[0, 1]')
                         loss = self.criterion(preds, labels)
                     else:
                         # preds = convert_image(preds, source='[0, 1]', target='imagenet-norm')
@@ -191,7 +191,6 @@ class Trainer:
             del inputs, labels, preds
 
         print(f'scale:{str(scale)}      eval psnr: {epoch_psnr.avg:.2f}     ssim: {epoch_ssim.avg:.4f}')
-        self.logger([epoch, epoch_losses.avg, epoch_psnr.avg, epoch_ssim.avg])
 
         if epoch_psnr.avg > self.best_metric:
             self.best_epoch = epoch
@@ -220,7 +219,7 @@ class Trainer:
 
         if not isinstance(self.model, PreTrainedModel):
             # Setup scale
-            scale = self.model.config.scale
+            scale = 4
             if scale is not None:
                 weights_name = WEIGHTS_NAME_SCALE.format(scale=scale)
             else:

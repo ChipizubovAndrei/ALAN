@@ -25,7 +25,7 @@ from utils import TruncatedVGG19
 
 os.chdir(os.path.dirname(__file__))
 
-exp_num = 1
+exp_num = 6
 scale = 4
 args = f'./config/scale{scale}/exp_{exp_num}.yml'
 
@@ -64,6 +64,7 @@ with open(args) as yml_file:
         param.requires_grad = True
 
     model = srgan_generator
+    model = model.to(device)
 
 # --- Optimizer --- #
     optimizer = Adam(model.parameters(), lr=1.e-4)
